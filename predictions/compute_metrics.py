@@ -13,9 +13,6 @@ from ipfml.processing.segmentation import divide_in_blocks
 import torch
 from sklearn.metrics import roc_auc_score, accuracy_score
 
-# models imports
-sys.path.insert(0, '') # trick to enable import of main folder module
-
 # other parameters
 BACKUP_MODEL_NAME = "{}_model.pt"
 BACKUP_FOLDER = "saved_models"
@@ -24,13 +21,15 @@ zones = np.arange(16)
 zone_size = (200, 200)
 samples_step = 20
 
-from seq_processing.model_choice import prepare_model, choices_input
+# models imports
+sys.path.insert(0, '') # trick to enable import of main folder module
+from models.seq_processing.model_choice import prepare_model, choices_input
 
 '''
 Display progress information as progress bar
 '''
 def write_progress(progress):
-    barWidth = 180
+    barWidth = 120
 
     output_str = "["
     pos = barWidth * progress

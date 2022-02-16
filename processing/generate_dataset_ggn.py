@@ -29,7 +29,7 @@ rotation_choices = np.arange(1, 4) # number of times to rotate
 Display progress information as progress bar
 '''
 def write_progress(progress):
-    barWidth = 150
+    barWidth = 120
 
     output_str = "["
     pos = barWidth * progress
@@ -73,8 +73,6 @@ def preprocess_block(block):
 Constuct all dataset with specific tile size
 '''
 def construct_tiles(scene, dataset_path, thresholds, output_path, nb, tile_size, sequence, set_path):
-
-    images_counter = 0
 
     h_tile, w_tile = tile_size
 
@@ -234,7 +232,12 @@ def construct_tiles(scene, dataset_path, thresholds, output_path, nb, tile_size,
 
             current_input_nsamples = (random_input_index + sequence) * samples_step
 
+            #############################################################
+            # TODO : include specific way to compute current image weight
+            #############################################################
             current_weight = 1. / math.log(current_input_nsamples)
+            #############################################################
+            
             current_label = int(random_input_index < thresholds_index)
 
             # patch for input block

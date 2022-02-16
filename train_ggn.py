@@ -10,9 +10,7 @@ from PIL import Image
 # deep learning imports
 import torch
 import torchvision
-from torchvision import datasets, models, transforms
-import matplotlib.pyplot as plt
-from torch.nn import functional as F
+from torchvision import transforms
 from torch.autograd import Variable
 from sklearn.metrics import roc_auc_score
 
@@ -28,12 +26,6 @@ from models.discriminators.discriminator_v1 import Discriminator
 # losses imports
 from losses.utils import Loss
 
-from scipy.ndimage import gaussian_filter
-from ipfml.processing.transform import get_LAB_L
-from ipfml.processing import reconstruction
-import cv2
-
-import processing.config as cfg
 # logger import
 import gym
 log = gym.logger
@@ -50,7 +42,7 @@ LEARNING_RATE = 0.0002
 REPORT_EVERY_ITER = 10
 SAVE_IMAGE_EVERY_ITER = 20
 
-from predictions.seq_processing.model_choice import prepare_model, choices_input
+from models.seq_processing.model_choice import prepare_model, choices_input
 
 def get_batch_data(data):
 
@@ -161,17 +153,17 @@ def main():
 
     # build data path
     train_path = os.path.join(p_folder, 'train')
-    test_path = os.path.join(p_folder, 'test')
+    # test_path = os.path.join(p_folder, 'test')
 
-    references_train_path = os.path.join(train_path, cfg.references_folder)
+    references_train_path = os.path.join(train_path, 'references')
     input_train_path = os.path.join(train_path, 'input')
     weights_train_path = os.path.join(train_path, 'weights')
     labels_train_path = os.path.join(train_path, 'labels')
 
-    references_test_path = os.path.join(test_path, cfg.references_folder)
-    input_test_path = os.path.join(test_path, 'input')
-    weights_test_path = os.path.join(test_path, 'weights')
-    labels_test_path = os.path.join(test_path, 'labels')
+    # references_test_path = os.path.join(test_path, 'references')
+    # input_test_path = os.path.join(test_path, 'input')
+    # weights_test_path = os.path.join(test_path, 'weights')
+    # labels_test_path = os.path.join(test_path, 'labels')
 
     print('Data to predict:\n-', references_train_path)
     is_valid_file_f = lambda x: True if str(x).endswith('.npy') else False
@@ -203,24 +195,24 @@ def main():
         num_workers=0, pin_memory=False)
 
 
-    test_img_ref_folder = torchvision.datasets.ImageFolder(references_test_path, loader=numpy_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
-        transforms.ToTensor(),
-    ]))
+    # test_img_ref_folder = torchvision.datasets.ImageFolder(references_test_path, loader=numpy_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
+    #     transforms.ToTensor(),
+    # ]))
 
-    test_img_input_folder = torchvision.datasets.ImageFolder(input_test_path, loader=numpy_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
-        transforms.ToTensor(),
-    ]))
+    # test_img_input_folder = torchvision.datasets.ImageFolder(input_test_path, loader=numpy_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
+    #     transforms.ToTensor(),
+    # ]))
 
-    test_img_weights_folder = torchvision.datasets.DatasetFolder(weights_test_path, loader=weights_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
-        transforms.ToTensor(),
-    ]))
+    # test_img_weights_folder = torchvision.datasets.DatasetFolder(weights_test_path, loader=weights_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
+    #     transforms.ToTensor(),
+    # ]))
 
-    test_img_labels_folder = torchvision.datasets.DatasetFolder(labels_test_path, loader=labels_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
-        transforms.ToTensor(),
-    ]))
+    # test_img_labels_folder = torchvision.datasets.DatasetFolder(labels_test_path, loader=labels_loader, is_valid_file=is_valid_file_f, transform=transforms.Compose([
+    #     transforms.ToTensor(),
+    # ]))
 
     image_folders_data = [img_ref_folder, img_input_folder, img_weights_folder, img_labels_folder]
-    test_image_folders_data = [test_img_ref_folder, test_img_input_folder, test_img_weights_folder, test_img_labels_folder]
+    # test_image_folders_data = [test_img_ref_folder, test_img_input_folder, test_img_weights_folder, test_img_labels_folder]
 
     # shuffle data loader and made possible to keep track well of reference
     train_loader = torch.utils.data.DataLoader(
@@ -246,9 +238,9 @@ def main():
     # getting input image size
     for _, data in enumerate(train_loader):
         batch_ref_data, batch_input, _, _ = get_batch_data(data)
-        input_n_channels = list(batch_input.size())[1]
-        input_img_size = list(batch_input.size())[2]
-        output_n_channels = list(batch_input.size())[1]
+        # input_n_channels = list(batch_input.size())[1]
+        # input_img_size = list(batch_input.size())[2]
+        # output_n_channels = list(batch_input.size())[1]
         output_img_size = list(batch_input.size())[2]
         break
 
@@ -362,7 +354,7 @@ def main():
             print('---------------------------')
         
     # define writer
-    writer = SummaryWriter(os.path.join('runs_gans_v2', p_save))
+    writer = SummaryWriter(os.path.join('runs_ggn', p_save))
 
     for epoch in range(p_epochs):
 
