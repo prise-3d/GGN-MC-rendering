@@ -4,7 +4,7 @@
 ## Description
 
 
-<img src="resources/images/total_gan_scheme.svg" width="80%">
+<img src="resources/images/total_gan_scheme.svg">
 
 ## Installation
 
@@ -46,8 +46,11 @@ python processing/reconstruct_images_human_thresholds.py --folder path/to/SIN3D_
 
 ## Start training
 
-## Citation
+## Paper and citation
 
+- Paper : [download](https://hal.archives-ouvertes.fr/hal-03374214v1)
+
+Cite this paper:
 ```
 @inproceedings{9680095,
   author={Buisine, Jérôme and Teytaud, Fabien and Delepoulle, Samuel and Renaud, Christophe},
