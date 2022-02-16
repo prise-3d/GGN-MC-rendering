@@ -3,6 +3,9 @@
 
 ## Description
 
+
+<img src="resources/images/total_gan_scheme.svg" width="80%">
+
 ## Installation
 
 ```bash

@@ -7,6 +7,7 @@ tensorflow
 tensorboardX
 gym
 rawls
+ipfml
 pytorch_msssim
 pandas
 munch
