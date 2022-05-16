@@ -94,11 +94,8 @@ def prepare_model(choice, seq_layer, tile_size, sequence):
         else:
             autoencoder_ref = UShapedAutoencoder(3, 3, tile_size)
 
-        # RGB input sequence for Greay level output
-        if tile_size > 100:
-            autoencoder_mask = Autoencoder200(3 * sequence, 1, tile_size)
-        else:
-            autoencoder_mask = Autoencoder200(3 * sequence, 1, tile_size)
+        # RGB input sequence for Gray level output
+        autoencoder_mask = Autoencoder200(3 * sequence, 1, tile_size)
 
         return autoencoder_ref, autoencoder_mask, discriminator
 
