@@ -182,21 +182,20 @@ def main():
 
                 nsamples = (b_i + 1) * samples_step
 
-
                 # remove first block if max sequence size is already reached
-                if len(zone_sequence[b_i]) >= p_sequence:
-                    zone_sequence[b_i].pop(0)
+                if len(zone_sequence) >= p_sequence:
+                    zone_sequence.pop(0)
 
                 # add new block
-                zone_sequence[b_i].append(sblock)
+                zone_sequence.append(sblock)
 
-                if len(zone_sequence[b_i]) >= p_sequence:
+                if len(zone_sequence) >= p_sequence:
                     
                     # prepare data ref and input for mask autoencoder   
                     prepared_input_sequence = []
                     prepared_ref_sequence = []
 
-                    for cblock in zone_sequence[b_i]:
+                    for cblock in zone_sequence:
                         
                         moved_input = np.moveaxis(cblock, -1, 0)
 
@@ -226,8 +225,8 @@ def main():
 
                     if current_prob < 0.5: # TODO : check expected thresholds
                         
-                        if zone_sequence[b_i] is None:
-                            zone_sequence[b_i] = nsamples
+                        if zone_threshold is None:
+                            zone_threshold = nsamples
 
                     model_predictions.append(current_prob)
                     current_zone_predictions.append(current_prob)
