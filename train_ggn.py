@@ -363,6 +363,7 @@ def main():
         # initialize correct detected from discriminator
         correct_detected = 0
         roc_auc_score_sum = 0
+        batch_auc_counter = 0
 
          # check dataset in order to restart
         if train_dataset_batch_size * (epoch + 1) < start_iteration and restart:
@@ -477,17 +478,20 @@ def main():
             autoencoder_mask_optimizer.step()
             
             # 4. compute accuracy from the epoch
+            # Using basic threshold of 0.5
             discriminator_output_label = (discriminator_output > 0.5).float() 
 
             correct_detected += (discriminator_output_label == reshaped_labels).float().sum()
             
             try:
                 roc_auc_score_sum += roc_auc_score(reshaped_labels.detach().cpu().numpy(), discriminator_output.detach().cpu().numpy())
+                # increase number of batch ok (only if added and auc roc is ok)
+                batch_auc_counter += 1
             except:
                 print('Not possible to compute ROC score for this batch... Perhaps a lot of precision...')
 
             discriminator_accuracy = correct_detected / float(((batch_id + 1) * p_batch_size))
-            discriminator_auc_roc = roc_auc_score_sum / float(batch_id + 1)
+            discriminator_auc_roc = roc_auc_score_sum / float(batch_auc_counter)
 
             # 5. Add to summary writer tensorboard
             if iteration % REPORT_EVERY_ITER == 0:
