@@ -173,87 +173,78 @@ def main():
         # for each zone load each data
         for z in zones:
 
-            sub_thresholds = {}
-            sub_thresholds_sequence = {}
+            zone_sequence = []
+            zone_threshold = None
             current_zone_predictions = []
-
-            for i in range(n_sub_blocks):
-                sub_thresholds[i] = None
-                sub_thresholds_sequence[i] = []
 
             # loaded zone data to inspect using model
             for b_i, block in enumerate(scenes_images[z]):
-                sub_blocks = divide_in_blocks(block, tile_size, pil=False)
 
                 nsamples = (b_i + 1) * samples_step
 
-                # for each sub blocks, call model and get probability
-                for sb_i, sblock in enumerate(sub_blocks):
 
-                    # remove first block if max sequence size is already reached
-                    if len(sub_thresholds_sequence[sb_i]) >= p_sequence:
-                        sub_thresholds_sequence[sb_i].pop(0)
+                # remove first block if max sequence size is already reached
+                if len(zone_sequence[b_i]) >= p_sequence:
+                    zone_sequence[b_i].pop(0)
 
-                    # add new block
-                    # if len(sub_thresholds_sequence[sb_i]) < p_sequence:
-                    sub_thresholds_sequence[sb_i].append(sblock)
+                # add new block
+                zone_sequence[b_i].append(sblock)
 
-                    if len(sub_thresholds_sequence[sb_i]) >= p_sequence:
+                if len(zone_sequence[b_i]) >= p_sequence:
+                    
+                    # prepare data ref and input for mask autoencoder   
+                    prepared_input_sequence = []
+                    prepared_ref_sequence = []
+
+                    for cblock in zone_sequence[b_i]:
                         
-                        # prepare data ref and input for mask autoencoder   
-                        prepared_input_sequence = []
-                        prepared_ref_sequence = []
+                        moved_input = np.moveaxis(cblock, -1, 0)
 
-                        for cblock in sub_thresholds_sequence[sb_i]:
-                            
-                            moved_input = np.moveaxis(cblock, -1, 0)
+                        prepared_input = np.expand_dims(moved_input, axis=0)
+                        torch_input = torch.from_numpy(prepared_input).float()
 
-                            prepared_input = np.expand_dims(moved_input, axis=0)
-                            torch_input = torch.from_numpy(prepared_input).float()
+                        prepared_input_sequence.append(torch_input)
 
-                            prepared_input_sequence.append(torch_input)
+                        predicted_ref = autoencoder_ref(torch.from_numpy(prepared_input).float())
+                        prepared_ref_sequence.append(predicted_ref)
 
-                            predicted_ref = autoencoder_ref(torch.from_numpy(prepared_input).float())
-                            prepared_ref_sequence.append(predicted_ref)
+                    prepared_input_sequence = torch.cat(prepared_input_sequence, dim=1)
+                    predicted_ref_sequence = torch.cat(prepared_ref_sequence, dim=1)
 
-                        prepared_input_sequence = torch.cat(prepared_input_sequence, dim=1)
-                        predicted_ref_sequence = torch.cat(prepared_ref_sequence, dim=1)
+                    # Get data mask from sequence
+                    ref_mask = autoencoder_mask(predicted_ref_sequence)
+                    noisy_mask = autoencoder_mask(prepared_input_sequence)
 
-                        # Get data mask from sequence
-                        ref_mask = autoencoder_mask(predicted_ref_sequence)
-                        noisy_mask = autoencoder_mask(prepared_input_sequence)
+                    inputs_mask = torch.cat((ref_mask, noisy_mask), dim=1)
 
-                        inputs_mask = torch.cat((ref_mask, noisy_mask), dim=1)
+                    # predict output prob
+                    prob = discriminator(inputs_mask)
+                    current_prob = prob.detach().numpy()[0]
+                    # check if not noisy (check if fake)
+                    # noisy => 1 (reference)
+                    # not noisy => 0
 
-                        # predict output prob
-                        prob = discriminator(inputs_mask)
-                        current_prob = prob.detach().numpy()[0]
-                        # check if not noisy (check if fake)
-                        # noisy => 1 (reference)
-                        # not noisy => 0
+                    if current_prob < 0.5: # TODO : check expected thresholds
+                        
+                        if zone_sequence[b_i] is None:
+                            zone_sequence[b_i] = nsamples
 
-                        if current_prob < 0.5: # TODO : check expected thresholds
-                            
-                            if sub_thresholds[sb_i] is None:
-                                sub_thresholds[sb_i] = nsamples
+                    model_predictions.append(current_prob)
+                    current_zone_predictions.append(current_prob)
 
-                        model_predictions.append(current_prob)
-                        current_zone_predictions.append(current_prob)
-
-                        if nsamples > thresholds[scene][z]:
-                            expected_predictions.append(0)
-                        else:
-                            expected_predictions.append(1)
+                    if nsamples > thresholds[scene][z]:
+                        expected_predictions.append(0)
+                    else:
+                        expected_predictions.append(1)
 
                 write_progress((ncounter + 1) / max_counters)
                 ncounter += 1
 
-            for i in range(n_sub_blocks):
-                if sub_thresholds[i] is None:
-                    sub_thresholds[i] = samples_step * len(scenes_images[z])
+            if zone_threshold is None:
+                zone_threshold = samples_step * len(scenes_images[z])
 
             # save current zone predictions and label
-            thresholds_found.append(np.max([ sub_thresholds[i] for i in range(n_sub_blocks)]))
+            thresholds_found.append(zone_threshold)
             all_predictions.append(current_zone_predictions)
         
         print(f'Thresholds found: {thresholds_found}')
