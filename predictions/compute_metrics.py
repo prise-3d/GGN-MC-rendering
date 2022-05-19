@@ -187,7 +187,7 @@ def main():
                     zone_sequence.pop(0)
 
                 # add new block
-                zone_sequence.append(sblock)
+                zone_sequence.append(block)
 
                 if len(zone_sequence) >= p_sequence:
                     
