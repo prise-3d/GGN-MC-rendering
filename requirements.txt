@@ -3,7 +3,7 @@ torch==1.13.1
 torchvision==0.11.3
 keras==2.8.0
 matplotlib==3.5.0
-tensorflow==2.8.0
+tensorflow==2.11.1
 tensorboardX==2.4.1
 gym==0.21.0
 rawls==1.1.7
