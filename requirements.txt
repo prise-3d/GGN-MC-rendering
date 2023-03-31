@@ -1,5 +1,5 @@
 numpy==1.21.4
-torch==1.10.2
+torch==1.13.1
 torchvision==0.11.3
 keras==2.8.0
 matplotlib==3.5.0
